@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -17,6 +18,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth;
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         val user = Firebase.auth.currentUser
         if (user != null) {
             // User is signed in
@@ -25,7 +27,7 @@ class LoginActivity : AppCompatActivity() {
         } else {
             // No user is signed in
 
-        super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_login)
         auth = Firebase.auth
 
@@ -73,6 +75,7 @@ class LoginActivity : AppCompatActivity() {
                         Log.d(TAG, "signInWithEmail:success")
                         val intent = Intent(this, MainActivity::class.java)
                         startActivity(intent)
+                        updateUI(auth.currentUser)
 
 
 
@@ -81,10 +84,13 @@ class LoginActivity : AppCompatActivity() {
                         Log.w(TAG, "signInWithEmail:failure", task.exception)
                         Toast.makeText(baseContext, "Authentication failed.",
                             Toast.LENGTH_SHORT).show()
-                        //updateUI(null)
+                        updateUI(null)
                     }
                 }
         }
 
+    }
+
+    private fun updateUI(user: FirebaseUser?) {
     }
 }

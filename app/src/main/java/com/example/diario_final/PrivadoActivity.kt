@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.ContentValues.TAG
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -11,12 +12,14 @@ import android.provider.MediaStore
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import android.widget.VideoView
 import androidx.annotation.RequiresApi
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.time.LocalDate
@@ -43,7 +46,6 @@ class PrivadoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_privado)
 
-
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigationViewPrivado)
         bottomNav.setOnNavigationItemSelectedListener(navListener)
 
@@ -53,8 +55,38 @@ class PrivadoActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+        val btnShare = findViewById<ImageButton>(R.id.imageButtonShare)
+        btnShare.setOnClickListener{
+            share()
+        }
 
         addvidpriv()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun share(){
+        val localDate = LocalDate.now()
+        val DateTime = DateTimeFormatter.ofPattern("dd-M-yyyy")
+        val formated = localDate.format(DateTime)
+
+        user?.let {
+            val docRef = db.collection(formated.toString()).document(it.uid)
+
+            docRef.get().addOnSuccessListener { document ->
+                if (document.data?.get("videolink") != null){
+                    println(document.data?.get("videolink"))
+                    val sendIntent: Intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, document.data?.get("videolink") as String?)
+                        type = "text/plain"
+                    }
+                    val shareIntent = Intent.createChooser(sendIntent, null)
+                    startActivity(shareIntent)
+                }else{
+                    Toast.makeText(this,"Não existe vídeo neste dia" , Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -62,37 +94,36 @@ class PrivadoActivity : AppCompatActivity() {
 
         user?.let {
             videoView = findViewById(R.id.videoViewPrivado)
-            val docRef = db.collection(it.uid).document(formated.toString())
+            val docRef = db.collection(formated.toString()).document(it.uid)
             val editdata = findViewById<TextView>(R.id.textViewData)
+            val btnshare = findViewById<ImageButton>(R.id.imageButtonShare)
 
             docRef.get()
                 .addOnSuccessListener { document ->
-                    if (document != null) {
+                    if (document.data?.get("videolink") != null) {
+
                         Log.d(TAG, "DocumentSnapshot data: ${document.data}")
                         editdata.text = formated.toString()
                         videoView.setVideoPath(document.data?.get("videolink").toString())
                         videoView.start()
 
                     } else {
+
                         Log.d(TAG, "No such document")
                         videoView.visibility = android.view.View.INVISIBLE
                         editdata.visibility = android.view.View.INVISIBLE
+                        btnshare.visibility = android.view.View.INVISIBLE
+                        Toast.makeText(this,"Ainda não publicaste o diário de hoje" , Toast.LENGTH_SHORT).show()
                     }
                 }
                 .addOnFailureListener { exception ->
                     Log.d(TAG, "get failed with ", exception)
                     videoView.visibility = android.view.View.INVISIBLE
                     editdata.visibility = android.view.View.INVISIBLE
+                    btnshare.visibility = android.view.View.INVISIBLE
+
                 }
-
-
-
-
         }
-
-
-
-
     }
 
     val navListener = BottomNavigationView.OnNavigationItemSelectedListener(){ item->
@@ -113,8 +144,6 @@ class PrivadoActivity : AppCompatActivity() {
                 }catch (e: ActivityNotFoundException){
                     Toast.makeText(this,"ERROR" + e.localizedMessage, Toast.LENGTH_SHORT).show()
                 }
-
-
                 return@OnNavigationItemSelectedListener true
             }
             R.id.perfil -> {
@@ -135,9 +164,6 @@ class PrivadoActivity : AppCompatActivity() {
             val intent = Intent(this,DiarioActivity::class.java)
             intent.putExtra("vid",videoUri.toString())
             startActivity(intent)
-            //videoView.setVideoURI(videoUri)
-            //videoView.start()
-
         }
     }
 }

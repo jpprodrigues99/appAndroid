@@ -75,7 +75,6 @@ class RegistarActivity : AppCompatActivity() {
                         val user = Firebase.auth.currentUser
                         val profileUpdates = userProfileChangeRequest {
                             displayName = username
-
                         }
 
                         user!!.updateProfile(profileUpdates)
@@ -100,6 +99,7 @@ class RegistarActivity : AppCompatActivity() {
                     }
                 }
         }
+
 
 
     }

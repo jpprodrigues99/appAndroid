@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.Camera
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.CloudMediaProviderContract.MediaCollectionInfo
@@ -15,23 +16,35 @@ import android.provider.MediaStore
 import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.Query
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import org.w3c.dom.Document
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 
 class MainActivity : AppCompatActivity() {
-    private var our_request_code: Int = 123
-    private lateinit var videoView: VideoView
 
-
+    private var reachedTop = false
+    private var reachedBottom = false
     val RESQUEST_VIDEO_CAPTURE = 100
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        //videoView = findViewById(R.id.videoViewAmigos)
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigationViewAmigos)
         bottomNav.setOnNavigationItemSelectedListener(navListener)
@@ -40,18 +53,49 @@ class MainActivity : AppCompatActivity() {
         btnPrivado.setOnClickListener {
             val intent = Intent(this, PrivadoActivity::class.java)
             startActivity(intent)
+        }
+        recyclerView()
+
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun recyclerView(){
+        val user = Firebase.auth.currentUser
+        user?.let {
+            val recyclerview = findViewById<RecyclerView>(R.id.RecyclerViewAmigos)
+            recyclerview.layoutManager = LinearLayoutManager(this)
+            val data = ArrayList<ItemsViewModel>()
+            val db = FirebaseFirestore.getInstance()
+            val localDate = LocalDate.now()
+            val DateTime = DateTimeFormatter.ofPattern("dd-M-yyyy")
+            val formated = localDate.format(DateTime)
+            val docRef = db.collection(formated.toString()).document(it.uid)
+
+                docRef.get()
+                    .addOnSuccessListener { document ->
+                    if (document.data?.get("videolink") != null){
+                        db.collection(formated).orderBy("hora", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                            .get()
+                            .addOnSuccessListener { documents ->
+
+                                for (document in documents){
+                                    //println(docRef)
+
+                                    val item = ItemsViewModel(document.data.get("videolink").toString(),document.data.get("username").toString(),document.data.get("data").toString())
+                                    data.add(item)
+                                }
+                                val adapter = RecyclerAdapter(data)
+                                recyclerview.adapter=adapter
+                            }
+                    }else{
+                        Toast.makeText(this,"Ainda não publicaste o diário de hoje" , Toast.LENGTH_SHORT).show()
+                    }
+                    }
 
         }
-
-        initVideos()
-
-
     }
 
-    private fun initVideos() {
-        val layoutManager = LinearLayoutManager(this)
-
-    }
 
     val navListener = BottomNavigationView.OnNavigationItemSelectedListener(){item->
 
@@ -65,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             R.id.add -> {
                 // put your code here
                 val take = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
-                println(MediaStore.ACTION_VIDEO_CAPTURE)
+              //  println(MediaStore.ACTION_VIDEO_CAPTURE)
                 try {
                     startActivityForResult(take,RESQUEST_VIDEO_CAPTURE)
 
@@ -82,7 +126,6 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
                 return@OnNavigationItemSelectedListener true
             }
-
         }
         false
     }
@@ -117,7 +160,4 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }*/
-
-
-
 }
