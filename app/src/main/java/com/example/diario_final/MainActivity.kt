@@ -45,7 +45,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigationViewAmigos)
         bottomNav.setOnNavigationItemSelectedListener(navListener)
 
@@ -53,6 +52,7 @@ class MainActivity : AppCompatActivity() {
         btnPrivado.setOnClickListener {
             val intent = Intent(this, PrivadoActivity::class.java)
             startActivity(intent)
+            finish()
         }
         recyclerView()
 
@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun recyclerView(){
+    private fun recyclerView() {
         val user = Firebase.auth.currentUser
         user?.let {
             val recyclerview = findViewById<RecyclerView>(R.id.RecyclerViewAmigos)
@@ -72,54 +72,62 @@ class MainActivity : AppCompatActivity() {
             val formated = localDate.format(DateTime)
             val docRef = db.collection(formated.toString()).document(it.uid)
 
-                docRef.get()
-                    .addOnSuccessListener { document ->
-                    if (document.data?.get("videolink") != null){
-                        db.collection(formated).orderBy("hora", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            docRef.get()
+                .addOnSuccessListener { document ->
+                    if (document.data?.get("videolink") != null) {
+                        db.collection(formated).orderBy(
+                            "hora",
+                            com.google.firebase.firestore.Query.Direction.DESCENDING
+                        )
                             .get()
                             .addOnSuccessListener { documents ->
 
-                                for (document in documents){
-                                    //println(docRef)
+                                for (document in documents) {
 
-                                    val item = ItemsViewModel(document.data.get("videolink").toString(),document.data.get("username").toString(),document.data.get("data").toString())
+                                    val item = ItemsViewModel(
+                                        document.data.get("videolink").toString(),
+                                        document.data.get("username").toString(),
+                                        document.data.get("data").toString()
+                                    )
                                     data.add(item)
                                 }
                                 val adapter = RecyclerAdapter(data)
-                                recyclerview.adapter=adapter
+                                recyclerview.adapter = adapter
                             }
-                    }else{
-                        Toast.makeText(this,"Ainda não publicaste o diário de hoje" , Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(
+                            this,
+                            "Ainda não publicaste o diário de hoje",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-                    }
+                }
 
         }
     }
 
 
-    val navListener = BottomNavigationView.OnNavigationItemSelectedListener(){item->
+    val navListener = BottomNavigationView.OnNavigationItemSelectedListener() { item ->
 
         when (item.itemId) {
             R.id.addAmigo -> {
-                // put your code here
-                val intent = Intent(this, AdAmigoActivity::class.java)
-                startActivity(intent)
-                return@OnNavigationItemSelectedListener true
+                // val intent = Intent(this, AdAmigoActivity::class.java)
+                // startActivity(intent)
+                //return@OnNavigationItemSelectedListener true
             }
-            R.id.add -> {
-                // put your code here
-                val take = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
-              //  println(MediaStore.ACTION_VIDEO_CAPTURE)
-                try {
-                    startActivityForResult(take,RESQUEST_VIDEO_CAPTURE)
 
-                }catch (e: ActivityNotFoundException){
-                    Toast.makeText(this,"ERROR" + e.localizedMessage,Toast.LENGTH_SHORT).show()
+            R.id.add -> {
+                val take = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
+                try {
+                    startActivityForResult(take, RESQUEST_VIDEO_CAPTURE)
+
+                } catch (e: ActivityNotFoundException) {
+                    Toast.makeText(this, "ERROR" + e.localizedMessage, Toast.LENGTH_SHORT).show()
                 }
 
-
                 return@OnNavigationItemSelectedListener true
             }
+
             R.id.perfil -> {
                 // put your code here
                 val intent = Intent(this, PerfilActivity::class.java)
@@ -133,31 +141,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == RESQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK && data!=null) {
+        if (requestCode == RESQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK && data != null) {
             val videoUri = data.getData()
             println(videoUri?.getPath())
-            val intent = Intent(this,DiarioActivity::class.java)
-            intent.putExtra("vid",videoUri.toString())
+            val intent = Intent(this, DiarioActivity::class.java)
+            intent.putExtra("vid", videoUri.toString())
             startActivity(intent)
-            //videoView.setVideoURI(videoUri)
-            //videoView.start()
-
         }
     }
 
-    /*override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == RESQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
-            val videoUri = data?.data
-
-
-            val intent = Intent(this, MainActivity::class.java).also {
-                //intent.putExtra("vid",videoUri)
-                //startActivity(intent)
-                //videoView.setVideoURI(videoUri)
-                //videoView.start()
-
-            }
-        }
-    }*/
 }

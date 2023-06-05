@@ -11,6 +11,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.ktx.userProfileChangeRequest
@@ -30,21 +31,20 @@ class DefinicoesPerfilActivity : AppCompatActivity() {
         setContentView(R.layout.activity_definicoes_perfil)
 
         val btnBackDefinicoes = findViewById<ImageButton>(R.id.imageButtonBackDefinicoes)
-        btnBackDefinicoes.setOnClickListener{
-            val intent = Intent(this,PerfilActivity::class.java)
+        btnBackDefinicoes.setOnClickListener {
+            val intent = Intent(this, PerfilActivity::class.java)
             startActivity(intent)
-
         }
 
         val btnsair = findViewById<Button>(R.id.buttonSair)
-
-        btnsair.setOnClickListener{
+        btnsair.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
-            val intent = Intent(this,LoginActivity::class.java)
+            val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
         }
+
         val btnfoto = findViewById<Button>(R.id.buttonfoto)
-        btnfoto.setOnClickListener{
+        btnfoto.setOnClickListener {
             val gallery = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI)
             startActivityForResult(gallery, pickImage)
         }
@@ -54,16 +54,33 @@ class DefinicoesPerfilActivity : AppCompatActivity() {
         val pass = findViewById<EditText>(R.id.editTextTextPassword)
         val nomeu = findViewById<EditText>(R.id.editTextTextUser)
 
-        btnGuardar.setOnClickListener{
-            /*val firebaseStorage = FirebaseStorage.getInstance()
+
+        btnGuardar.setOnClickListener {
+
+            if (email.text.isEmpty() || pass.text.isEmpty() || nomeu.text.isEmpty()) {
+                Toast.makeText(this, "Preencha os campos", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val firebaseStorage = FirebaseStorage.getInstance()
             val imageReference = firebaseStorage.reference.child("Images/${user?.uid}.jpg")
-            println(imageUri)
-            imageUri?.let { it1 -> imageReference.putFile(it1) }*/
+            imageUri?.let { it1 -> imageReference.putFile(it1) }
 
             val profileUpdates = userProfileChangeRequest {
                 displayName = nomeu.text.toString()
-               // photoUri = Uri.parse("https://example.com/jane-q-user/profile.jpg")
             }
+
+            user!!.updateEmail(email.text.toString())
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d(TAG, "User email address updated.")
+                    }
+                }
+            user!!.updatePassword(pass.text.toString())
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d(TAG, "User password updated.")
+                    }
+                }
 
             user!!.updateProfile(profileUpdates)
                 .addOnCompleteListener { task ->
@@ -71,7 +88,7 @@ class DefinicoesPerfilActivity : AppCompatActivity() {
                         Log.d(TAG, "User name updated.")
                     }
                 }
-            val intent = Intent(this,PerfilActivity::class.java)
+            val intent = Intent(this, PerfilActivity::class.java)
             startActivity(intent)
         }
 
@@ -81,7 +98,6 @@ class DefinicoesPerfilActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK && requestCode == pickImage) {
             imageUri = data?.data
-
         }
     }
 }

@@ -8,12 +8,14 @@ import android.widget.VideoView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.ads.mediation.Adapter
 
-class RecyclerAdapter(private val mList: ArrayList<ItemsViewModel>): RecyclerView.Adapter<RecyclerAdapter.ViewHolder>() {
+class RecyclerAdapter(private val mList: ArrayList<ItemsViewModel>) :
+    RecyclerView.Adapter<RecyclerAdapter.ViewHolder>() {
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.card_layout,parent,false)
-        println(view)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.card_layout, parent, false)
+
         return ViewHolder(view)
 
     }
@@ -31,7 +33,7 @@ class RecyclerAdapter(private val mList: ArrayList<ItemsViewModel>): RecyclerVie
         return mList.size
     }
 
-    inner class ViewHolder(ItemView: View): RecyclerView.ViewHolder(ItemView){
+    inner class ViewHolder(ItemView: View) : RecyclerView.ViewHolder(ItemView) {
         val itemVideo: VideoView
         var itemNome: TextView
         var itemData: TextView

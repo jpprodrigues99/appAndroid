@@ -22,7 +22,6 @@ import com.google.firebase.storage.ktx.storage
 class PerfilActivity : AppCompatActivity() {
     val user = Firebase.auth.currentUser
     val storageRef = FirebaseStorage.getInstance().reference
-    val storageReference = Firebase.storage.reference
     val db = Firebase.firestore
 
     @SuppressLint("MissingInflatedId")
@@ -45,52 +44,40 @@ class PerfilActivity : AppCompatActivity() {
         }
 
         val calendar = findViewById<CalendarView>(R.id.calendarViewDiarios)
-
         calendar.setOnDateChangeListener(CalendarView.OnDateChangeListener { view, year, month, dayOfMonth ->
             val date = (dayOfMonth.toString() + "-" + (month + 1) + "-" + year)
             println(date)
             abrirpaginaweb(date)
-
-
         })
-
-
 
         val username = findViewById<TextView>(R.id.textViewNomeUtilizador)
         val imageview = findViewById<ImageView>(R.id.imageViewFotoPerfil)
-
-
         user?.let {
             // Name, email address, and profile photo Url
             username.text = it.displayName
-
         }
 
-        //val ref = storageRef.child("Images/${user?.uid}.jpg")
-        //imageview.setImageURI(ref as Uri?)
-
-       /* Glide.with(this)
-            .load(storageReference.child("Images/${user?.uid}.jpg").toString())
-            .into(imageview)*/
-
-
-
+        storageRef.child("Images/${user?.uid}.jpg").downloadUrl.addOnSuccessListener { document ->
+            Glide.with(this)
+                .load(document)
+                .into(imageview)
+        }
 
     }
 
-    fun abrirpaginaweb(date : String){
+    fun abrirpaginaweb(date: String) {
 
         user?.let {
             val docRef = db.collection(date).document(it.uid)
             docRef.get().addOnSuccessListener { document ->
-                if (document.data?.get("videolink") != null){
+                if (document.data?.get("videolink") != null) {
                     println(document.data?.get("videolink"))
 
                     val intent = Intent(Intent.ACTION_VIEW)
                     intent.data = Uri.parse(document.data?.get("videolink") as String?)
                     startActivity(intent)
-                }else{
-                    Toast.makeText(this,"Não existe vídeo neste dia" , Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Não existe vídeo neste dia", Toast.LENGTH_SHORT).show()
                 }
 
             }

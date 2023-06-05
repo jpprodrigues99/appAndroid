@@ -35,8 +35,10 @@ class PrivadoActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     var localDate = LocalDate.now()
+
     @RequiresApi(Build.VERSION_CODES.O)
     val DateTime = DateTimeFormatter.ofPattern("dd-M-yyyy")
+
     @RequiresApi(Build.VERSION_CODES.O)
     val formated = localDate.format(DateTime)
 
@@ -50,13 +52,13 @@ class PrivadoActivity : AppCompatActivity() {
         bottomNav.setOnNavigationItemSelectedListener(navListener)
 
         val btnAmigos = findViewById<Button>(R.id.buttonAmigos)
-        btnAmigos.setOnClickListener{
-            val intent = Intent(this,MainActivity::class.java)
+        btnAmigos.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             finish()
         }
         val btnShare = findViewById<ImageButton>(R.id.imageButtonShare)
-        btnShare.setOnClickListener{
+        btnShare.setOnClickListener {
             share()
         }
 
@@ -64,7 +66,7 @@ class PrivadoActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun share(){
+    fun share() {
         val localDate = LocalDate.now()
         val DateTime = DateTimeFormatter.ofPattern("dd-M-yyyy")
         val formated = localDate.format(DateTime)
@@ -73,7 +75,7 @@ class PrivadoActivity : AppCompatActivity() {
             val docRef = db.collection(formated.toString()).document(it.uid)
 
             docRef.get().addOnSuccessListener { document ->
-                if (document.data?.get("videolink") != null){
+                if (document.data?.get("videolink") != null) {
                     println(document.data?.get("videolink"))
                     val sendIntent: Intent = Intent().apply {
                         action = Intent.ACTION_SEND
@@ -82,15 +84,15 @@ class PrivadoActivity : AppCompatActivity() {
                     }
                     val shareIntent = Intent.createChooser(sendIntent, null)
                     startActivity(shareIntent)
-                }else{
-                    Toast.makeText(this,"Não existe vídeo neste dia" , Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Não existe vídeo neste dia", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun addvidpriv(){
+    private fun addvidpriv() {
 
         user?.let {
             videoView = findViewById(R.id.videoViewPrivado)
@@ -113,7 +115,11 @@ class PrivadoActivity : AppCompatActivity() {
                         videoView.visibility = android.view.View.INVISIBLE
                         editdata.visibility = android.view.View.INVISIBLE
                         btnshare.visibility = android.view.View.INVISIBLE
-                        Toast.makeText(this,"Ainda não publicaste o diário de hoje" , Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this,
+                            "Ainda não publicaste o diário de hoje",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
                 .addOnFailureListener { exception ->
@@ -126,7 +132,7 @@ class PrivadoActivity : AppCompatActivity() {
         }
     }
 
-    val navListener = BottomNavigationView.OnNavigationItemSelectedListener(){ item->
+    val navListener = BottomNavigationView.OnNavigationItemSelectedListener() { item ->
 
         when (item.itemId) {
             R.id.addAmigo -> {
@@ -135,17 +141,19 @@ class PrivadoActivity : AppCompatActivity() {
                 startActivity(intent)
                 return@OnNavigationItemSelectedListener true
             }
+
             R.id.add -> {
                 // put your code here
                 val take = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
                 try {
-                    startActivityForResult(take,RESQUEST_VIDEO_CAPTURE)
+                    startActivityForResult(take, RESQUEST_VIDEO_CAPTURE)
 
-                }catch (e: ActivityNotFoundException){
-                    Toast.makeText(this,"ERROR" + e.localizedMessage, Toast.LENGTH_SHORT).show()
+                } catch (e: ActivityNotFoundException) {
+                    Toast.makeText(this, "ERROR" + e.localizedMessage, Toast.LENGTH_SHORT).show()
                 }
                 return@OnNavigationItemSelectedListener true
             }
+
             R.id.perfil -> {
                 // put your code here
                 val intent = Intent(this, PerfilActivity::class.java)
@@ -159,10 +167,10 @@ class PrivadoActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == RESQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK && data!=null) {
+        if (requestCode == RESQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK && data != null) {
             val videoUri = data.getData()
-            val intent = Intent(this,DiarioActivity::class.java)
-            intent.putExtra("vid",videoUri.toString())
+            val intent = Intent(this, DiarioActivity::class.java)
+            intent.putExtra("vid", videoUri.toString())
             startActivity(intent)
         }
     }

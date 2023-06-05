@@ -6,13 +6,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".PerfilActivity"
-    android:padding="16dp"
+
     >
 
   <ImageView
       android:id="@+id/imageViewFotoPerfil"
       android:layout_width="150dp"
       android:layout_height="150dp"
+      android:layout_marginStart="5dp"
       android:layout_marginTop="44dp"
       android:maxWidth="200dp"
       android:maxHeight="200dp"

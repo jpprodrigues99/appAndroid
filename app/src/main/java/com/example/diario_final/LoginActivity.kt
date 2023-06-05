@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -26,49 +27,49 @@ class LoginActivity : AppCompatActivity() {
             startActivity(intent)
         } else {
             // No user is signed in
+            setContentView(R.layout.activity_login)
+            auth = Firebase.auth
 
+            val btnLogin = findViewById<Button>(R.id.buttonIniciar)
+            btnLogin.setOnClickListener {
+                signIn()
+            }
 
-        setContentView(R.layout.activity_login)
-        auth = Firebase.auth
+            val btnRegistar = findViewById<Button>(R.id.buttonRegistar)
+            btnRegistar.setOnClickListener {
+                val intent = Intent(this, RegistarActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
 
-        val btnIniciar = findViewById<Button>(R.id.buttonIniciar)
-        btnIniciar.setOnClickListener{
-            val intent = Intent(this,MainActivity::class.java)
-            startActivity(intent)
-            finish()
-        }
+            val btnRepor = findViewById<TextView>(R.id.textViewRecuperar)
+            val email = findViewById<EditText>(R.id.editTextTextEmailAddressLogin)
+            btnRepor.setOnClickListener{
+                if (email.text.toString().isEmpty()){
+                    Toast.makeText(this, "Campo de e-mail vazio", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
 
-        val btnRegistar = findViewById<Button>(R.id.buttonRegistar)
-        btnRegistar.setOnClickListener {
-            val intent = Intent(this, RegistarActivity::class.java)
-            startActivity(intent)
-            finish()
-        }
-
-
-
-        val btnLogin = findViewById<Button>(R.id.buttonIniciar)
-        btnLogin.setOnClickListener{
-            signIn()
-            //val intent = Intent(this, MainActivity::class.java)
-            //startActivity(intent)
-
-
-        }
+                Firebase.auth.sendPasswordResetEmail(email.text.toString())
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Log.d(TAG, "Email sent.")
+                        }
+                    }
+            }
         }
     }
 
-    private fun signIn(){
-        val email = findViewById<EditText>(R.id.editTextTextEmailAddressLogin).text.toString()
-        val passe = findViewById<EditText>(R.id.editTextTextPasswordLogin).text.toString()
+    private fun signIn() {
+        val email = findViewById<EditText>(R.id.editTextTextEmailAddressLogin)
+        val passe = findViewById<EditText>(R.id.editTextTextPasswordLogin)
 
 
-
-        if(email.isEmpty() || passe.isEmpty()){
-            Toast.makeText(this,"Campo Vazio",Toast.LENGTH_SHORT).show()
+        if (email.text.toString().isEmpty() || passe.text.toString().isEmpty()) {
+            Toast.makeText(this, "Campo Vazio", Toast.LENGTH_SHORT).show()
             return
-        }else{
-            auth.signInWithEmailAndPassword(email, passe)
+        } else {
+            auth.signInWithEmailAndPassword(email.text.toString(), passe.text.toString())
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
                         // Sign in success, update UI with the signed-in user's information
@@ -78,12 +79,13 @@ class LoginActivity : AppCompatActivity() {
                         updateUI(auth.currentUser)
 
 
-
                     } else {
                         // If sign in fails, display a message to the user.
                         Log.w(TAG, "signInWithEmail:failure", task.exception)
-                        Toast.makeText(baseContext, "Authentication failed.",
-                            Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            baseContext, "Authentication failed.",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         updateUI(null)
                     }
                 }
