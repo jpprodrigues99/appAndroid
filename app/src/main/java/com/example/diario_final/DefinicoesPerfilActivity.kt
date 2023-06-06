@@ -1,8 +1,10 @@
 package com.example.diario_final
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.ContentValues.TAG
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -12,7 +14,10 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.ktx.Firebase
@@ -57,30 +62,42 @@ class DefinicoesPerfilActivity : AppCompatActivity() {
 
         btnGuardar.setOnClickListener {
 
-            if (email.text.isEmpty() || pass.text.isEmpty() || nomeu.text.isEmpty()) {
+            /*if (email.text.isEmpty() && pass.text.isEmpty() && nomeu.text.isEmpty()) {
                 Toast.makeText(this, "Preencha os campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
-            }
+            }*/
             val firebaseStorage = FirebaseStorage.getInstance()
             val imageReference = firebaseStorage.reference.child("Images/${user?.uid}.jpg")
             imageUri?.let { it1 -> imageReference.putFile(it1) }
 
-            val profileUpdates = userProfileChangeRequest {
-                displayName = nomeu.text.toString()
-            }
 
-            user!!.updateEmail(email.text.toString())
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Log.d(TAG, "User email address updated.")
-                    }
+            /* user!!.updateEmail(email.text.toString())
+                 .addOnCompleteListener { task ->
+                     if (task.isSuccessful) {
+                         Log.d(TAG, "User email address updated.")
+                     }
+                 }
+             user!!.updatePassword(pass.text.toString())
+                 .addOnCompleteListener { task ->
+                     if (task.isSuccessful) {
+                         Log.d(TAG, "User password updated.")
+                     }
+                 }*/
+
+            val profileUpdates: UserProfileChangeRequest
+
+            if (nomeu.text.toString().isEmpty()) {
+                profileUpdates = userProfileChangeRequest {
+                    photoUri = imageUri
                 }
-            user!!.updatePassword(pass.text.toString())
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Log.d(TAG, "User password updated.")
-                    }
+
+            } else {
+                profileUpdates = userProfileChangeRequest {
+                    displayName = nomeu.text.toString()
+                    photoUri = imageUri
                 }
+
+            }
 
             user!!.updateProfile(profileUpdates)
                 .addOnCompleteListener { task ->

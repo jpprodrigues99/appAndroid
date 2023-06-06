@@ -17,6 +17,8 @@ import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -102,7 +104,6 @@ class MainActivity : AppCompatActivity() {
                         ).show()
                     }
                 }
-
         }
     }
 
@@ -118,6 +119,18 @@ class MainActivity : AppCompatActivity() {
 
             R.id.add -> {
                 val take = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
+
+                val camaraPermission = arrayOf(android.Manifest.permission.CAMERA)
+                val permission = checkPermissions(camaraPermission)
+
+                if (!permission) {
+                    ActivityCompat.requestPermissions(
+                        this,
+                        camaraPermission,
+                        RESQUEST_VIDEO_CAPTURE
+                    )
+                    return@OnNavigationItemSelectedListener false
+                }
                 try {
                     startActivityForResult(take, RESQUEST_VIDEO_CAPTURE)
 
@@ -148,6 +161,19 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("vid", videoUri.toString())
             startActivity(intent)
         }
+    }
+
+    private fun checkPermissions(permissions: Array<String>): Boolean {
+        for (permission in permissions) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    permission
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return false
+            }
+        }
+        return true
     }
 
 }
